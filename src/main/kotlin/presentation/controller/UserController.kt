@@ -1,4 +1,4 @@
-package org.showoff.presentation
+package org.showoff.presentation.controller
 
 import org.showoff.application.dto.UserDTO
 import org.showoff.application.service.UserService
