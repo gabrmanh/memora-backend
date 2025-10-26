@@ -12,7 +12,7 @@ data class UserDeck(
     val id: UUID = UUID.randomUUID(),
 
     @Column(nullable = false)
-    val role: String, // e.g. "owner", "editor", "viewer"
+    val role: String, 
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
