@@ -19,7 +19,7 @@ class DeckService(
 
     fun getDeckSummaries(search: String?, page: Int, size: Int): Page<DeckSummary> {
         val pageable = PageRequest.of(page, size)
-        return deckRepository.findDeckSummaries(search, pageable)
+        return deckRepository.findDeckSummaries(search?.lowercase(), pageable)
     }
 
     fun getUsersForDeck(deckId: UUID): List<UserDTO> {

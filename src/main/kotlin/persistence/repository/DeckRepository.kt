@@ -13,18 +13,24 @@ import java.util.UUID
 @Repository
 interface DeckRepository : JpaRepository<Deck, UUID> {
 
-    @Query("""
-        SELECT new org.showoff.persistence.dto.DeckSummary(
-            d.id, d.name, d.description, COUNT(c.id)
-        )
-        FROM Deck d
-        LEFT JOIN Card c ON c.deck = d
-        WHERE (:search IS NULL OR LOWER(d.name) LIKE LOWER(CONCAT('%', :search, '%')) 
-               OR LOWER(d.description) LIKE LOWER(CONCAT('%', :search, '%')))
-        GROUP BY d.id, d.name, d.description
-    """)
+    @Query(
+        """
+    SELECT new org.showoff.persistence.dto.DeckSummary(
+        d.id, d.name, d.description, COUNT(c.id)
+    )
+    FROM Deck d
+    LEFT JOIN Card c ON c.deck = d
+    WHERE (
+        :search IS NULL
+        OR LOWER(d.name) LIKE CONCAT('%', CAST(:search AS string), '%')
+        OR LOWER(COALESCE(d.description, '')) LIKE CONCAT('%', CAST(:search AS string), '%')
+    )
+    GROUP BY d.id, d.name, d.description
+    """
+    )
     fun findDeckSummaries(
         @Param("search") search: String?,
         pageable: Pageable
     ): Page<DeckSummary>
+
 }
