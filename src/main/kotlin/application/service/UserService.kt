@@ -2,7 +2,6 @@ package org.showoff.application.service
 
 import org.showoff.application.dto.UserDTO
 import org.showoff.application.dto.toDTO
-import org.showoff.application.utils.exceptions.EntityNotFoundException
 import org.showoff.persistence.repository.UserRepository
 import org.springframework.stereotype.Service
 import java.util.UUID

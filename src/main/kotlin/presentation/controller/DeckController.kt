@@ -34,4 +34,11 @@ class DeckController(
     ): ResponseEntity<List<UserDTO>> {
         return ResponseEntity.ok(deckService.getUsersForDeck(deckId))
     }
+
+    @GetMapping("/{deckId}/version")
+    fun getDeckVersion(
+        @PathVariable deckId: UUID
+    ): ResponseEntity<Int> {
+        return ResponseEntity.ok(deckService.getDeckVersion(deckId))
+    }
 }
