@@ -24,8 +24,8 @@ class UserService(
         return userRepository.save(updatedUser).toDTO()
     }
     
-    fun findByEmail(email: String): UserDTO {
-        val user = userRepository.findByEmail(email) ?: throw EntityNotFoundException("User not found: $email")
+    fun findByEmail(email: String): UserDTO? {
+        val user = userRepository.findByEmail(email) ?: return null
         return UserDTO(user.id, user.name, user.email)
     }
 }
