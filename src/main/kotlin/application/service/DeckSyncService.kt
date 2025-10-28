@@ -5,6 +5,7 @@ import org.showoff.entity.deck.Card
 import org.showoff.entity.deck.Deck
 import org.showoff.entity.deck.Field
 import org.showoff.entity.deck.FieldValue
+import org.showoff.entity.user.UserDeck
 import org.showoff.persistence.repository.*
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -14,11 +15,11 @@ import java.util.*
 open class DeckSyncService(
     private val deckRepository: DeckRepository,
     private val userRepository: UserRepository,
+    private val userDeckRepository: UserDeckRepository,
     private val cardRepository: CardRepository,
     private val fieldRepository: FieldRepository,
     private val fieldValueRepository: FieldValueRepository
 ) {
-
     @Transactional
     open fun syncDeck(deckDTO: DeckSyncDTO): Deck {
         val user = userRepository.findById(deckDTO.createdById)
@@ -30,7 +31,9 @@ open class DeckSyncService(
                 name = deckDTO.name,
                 description = deckDTO.description,
                 createdBy = user
-            )
+            ).also {
+                userDeckRepository.save(UserDeck(role = "owner", user = user, deck = it))
+            }
         ).copy(
             name = deckDTO.name,
             description = deckDTO.description
