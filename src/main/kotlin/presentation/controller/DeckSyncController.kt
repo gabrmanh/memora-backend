@@ -3,6 +3,7 @@ package org.showoff.presentation.controller
 import org.showoff.application.dto.DeckSyncDTO
 import org.showoff.application.service.DeckSyncService
 import org.showoff.entity.deck.Deck
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -15,7 +16,7 @@ class DeckSyncController(
 ) {
 
     @PostMapping("/deck")
-    fun syncDeck(@RequestBody deckDTO: DeckSyncDTO): Deck {
-        return deckSyncService.syncDeck(deckDTO)
+    fun syncDeck(@RequestBody deckDTO: DeckSyncDTO): ResponseEntity<Deck> {
+        return ResponseEntity.ok(deckSyncService.syncDeck(deckDTO))
     }
 }

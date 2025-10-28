@@ -8,7 +8,8 @@ data class DeckSyncDTO(
     val description: String?,
     val createdById: UUID,
     val fields: List<FieldDTO>,
-    val cards: List<CardDTO>
+    val cards: List<CardDTO>,
+    val version: Int? = null
 )
 
 data class FieldDTO(

@@ -1,10 +1,14 @@
 package org.showoff.application.service
 
+import org.showoff.application.dto.CardDTO
 import org.showoff.application.dto.DeckSyncDTO
+import org.showoff.application.dto.FieldDTO
+import org.showoff.application.dto.FieldValueDTO
 import org.showoff.entity.deck.Card
 import org.showoff.entity.deck.Deck
 import org.showoff.entity.deck.Field
 import org.showoff.entity.deck.FieldValue
+import org.showoff.entity.user.User
 import org.showoff.entity.user.UserDeck
 import org.showoff.persistence.repository.*
 import org.springframework.stereotype.Service
@@ -25,62 +29,119 @@ open class DeckSyncService(
         val user = userRepository.findById(deckDTO.createdById)
             .orElseThrow { IllegalArgumentException("User not found") }
 
-        val deck = deckRepository.findById(deckDTO.id).orElse(
-            Deck(
-                id = deckDTO.id,
-                name = deckDTO.name,
-                description = deckDTO.description,
-                createdBy = user
-            ).also {
-                userDeckRepository.save(UserDeck(role = "owner", user = user, deck = it))
-            }
-        ).copy(
-            name = deckDTO.name,
-            description = deckDTO.description
-        )
-        deckRepository.save(deck)
+        val deck = setDeck(deckDTO, user)
 
-        val fieldMap = mutableMapOf<UUID, Field>()
-        for (fieldDTO in deckDTO.fields) {
-            val field = fieldRepository.findById(fieldDTO.id).orElse(
-                Field(
-                    id = fieldDTO.id,
-                    name = fieldDTO.name,
-                    type = fieldDTO.type,
-                    deck = deck
-                )
-            ).copy(
-                name = fieldDTO.name,
-                type = fieldDTO.type,
+        val existingCardIds = cardRepository.findAllByDeckId(deck.id).map { it.id }
+        if (existingCardIds.isNotEmpty()) {
+            fieldValueRepository.deleteByCardIdIn(existingCardIds)
+        }
+        cardRepository.deleteByDeckId(deck.id)
+        fieldRepository.deleteByDeckId(deck.id)
+
+        val fieldsById = mutableMapOf<UUID, Field>()
+        deckDTO.fields.forEach { f ->
+            val field = Field(
+                id = f.id,
+                name = f.name,
+                type = f.type,
                 deck = deck
             )
-            fieldRepository.save(field)
-            fieldMap[field.id] = field
+            fieldsById[field.id] = fieldRepository.save(field)
         }
 
-        for (cardDTO in deckDTO.cards) {
-            val card = cardRepository.findById(cardDTO.id).orElse(
+        deckDTO.cards.forEach { c ->
+            val card = cardRepository.save(
                 Card(
-                    id = cardDTO.id,
-                    difficulty = cardDTO.difficulty,
-                    index = cardDTO.index,
+                    id = c.id,
+                    difficulty = c.difficulty,
+                    index = c.index,
                     deck = deck
                 )
-            ).copy(
-                difficulty = cardDTO.difficulty,
-                index = cardDTO.index,
-                deck = deck
             )
-            cardRepository.save(card)
 
-            for (fv in cardDTO.fieldValues) {
-                val field = fieldMap[fv.fieldId]
+            c.fieldValues.forEach { fv ->
+                val field = fieldsById[fv.fieldId]
                     ?: throw IllegalArgumentException("Unknown field: ${fv.fieldId}")
-                val fieldValue = FieldValue(card = card, field = field, value = fv.value)
-                fieldValueRepository.save(fieldValue)
+                fieldValueRepository.save(
+                    FieldValue(card = card, field = field, value = fv.value)
+                )
             }
         }
 
+        return deck
+    }
+
+
+    @Transactional(readOnly = true)
+    open fun getDeckForSync(deckId: UUID): DeckSyncDTO {
+        val deck = deckRepository.findById(deckId)
+            .orElseThrow { IllegalArgumentException("Deck not found: $deckId") }
+
+        val fields = fieldRepository.findAllByDeckId(deckId)
+        val cards = cardRepository.findAllByDeckId(deckId)
+
+        val cardIds = cards.map { it.id }
+        val fieldValues = if (cardIds.isEmpty()) emptyList() else fieldValueRepository.findAllByCardIdIn(cardIds)
+
+        val fvsByCardId: Map<UUID, List<FieldValue>> = fieldValues.groupBy { it.card!!.id }
+
+        return DeckSyncDTO(
+            id = deck.id,
+            name = deck.name,
+            description = deck.description,
+            version = deck.version,
+            createdById = deck.createdBy?.id ?: error("Deck.createdBy is null"),
+
+            fields = fields.map { f ->
+                FieldDTO(
+                    id = f.id,
+                    name = f.name,
+                    type = f.type
+                )
+            },
+
+            cards = cards.map { c ->
+                val fvs = fvsByCardId[c.id].orEmpty()
+                CardDTO(
+                    id = c.id,
+                    difficulty = c.difficulty,
+                    index = c.index,
+                    fieldValues = fvs.map { fv ->
+                        FieldValueDTO(
+                            fieldId = fv.field!!.id,
+                            value = fv.value
+                        )
+                    }
+                )
+            }
+        )
+    }
+
+    private fun setDeck(
+        deckDTO: DeckSyncDTO,
+        user: User?
+    ): Deck {
+        val deck = deckRepository.findById(deckDTO.id)
+            .map { existing ->
+                existing.copy(
+                    name = deckDTO.name,
+                    description = deckDTO.description,
+                    version = existing.version + 1
+                )
+            }
+            .orElseGet {
+                Deck(
+                    id = deckDTO.id,
+                    name = deckDTO.name,
+                    description = deckDTO.description,
+                    version = 1,
+                    createdBy = user
+                ).also { created ->
+                    userDeckRepository.save(UserDeck(role = "owner", user = user, deck = created))
+                }
+            }
+
+        deckRepository.save(deck)
         return deck
     }
 }
