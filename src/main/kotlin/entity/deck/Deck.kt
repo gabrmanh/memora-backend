@@ -22,9 +22,12 @@ data class Deck(
 
     val description: String? = null,
 
+    @Column(nullable = false)
+    val version: Int = 1,
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by", nullable = false)
     val createdBy: User?
 ) {
-    protected constructor() : this(UUID.randomUUID(), "", null, null)
+    protected constructor() : this(UUID.randomUUID(), "", null, 1,null)
 }
