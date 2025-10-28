@@ -1,6 +1,5 @@
 package org.showoff.presentation.controller
 
-import org.apache.coyote.Response
 import org.showoff.application.dto.UserDTO
 import org.showoff.application.service.DeckService
 import org.showoff.persistence.dto.DeckSummary
