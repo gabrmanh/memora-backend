@@ -22,6 +22,8 @@ class ExceptionHandler {
     fun handleAllExceptions(ex: Exception, request: WebRequest): ResponseEntity<ErrorResponse> {
         val status = exceptionStatusMap[ex::class] ?: HttpStatus.INTERNAL_SERVER_ERROR
 
+        println(ex.message)
+
         val response = ErrorResponse(
             status = status.value(),
             error = status.reasonPhrase,

@@ -119,29 +119,30 @@ open class DeckSyncService(
 
     private fun setDeck(
         deckDTO: DeckSyncDTO,
-        user: User?
+        user: User
     ): Deck {
-        val deck = deckRepository.findById(deckDTO.id)
-            .map { existing ->
-                existing.copy(
-                    name = deckDTO.name,
-                    description = deckDTO.description,
-                    version = existing.version + 1
-                )
-            }
-            .orElseGet {
-                Deck(
-                    id = deckDTO.id,
-                    name = deckDTO.name,
-                    description = deckDTO.description,
-                    version = 1,
-                    createdBy = user
-                ).also { created ->
-                    userDeckRepository.save(UserDeck(role = "owner", user = user, deck = created))
-                }
-            }
+        val existingDeck = deckRepository.findById(deckDTO.id)
 
-        deckRepository.save(deck)
-        return deck
+        return if (existingDeck.isPresent) {
+            val existing = existingDeck.get()
+            val updated = existing.copy(
+                name = deckDTO.name,
+                description = deckDTO.description,
+                version = existing.version + 1
+            )
+            deckRepository.save(updated)
+        } else {
+            val created = Deck(
+                id = deckDTO.id,
+                name = deckDTO.name,
+                description = deckDTO.description,
+                version = 1,
+                createdBy = user
+            )
+            val savedDeck = deckRepository.save(created)
+            userDeckRepository.save(UserDeck(role = "owner", user = user, deck = savedDeck))
+
+            savedDeck
+        }
     }
 }
