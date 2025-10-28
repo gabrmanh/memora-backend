@@ -5,9 +5,6 @@ import org.showoff.application.service.AuthService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
-data class RegisterRequest(val name: String, val email: String, val password: String)
-data class LoginRequest(val email: String, val password: String)
-
 @RestController
 @RequestMapping("/auth")
 class AuthController(
@@ -26,3 +23,6 @@ class AuthController(
         return ResponseEntity.ok(user)
     }
 }
+
+data class RegisterRequest(val name: String, val email: String, val password: String)
+data class LoginRequest(val email: String, val password: String)

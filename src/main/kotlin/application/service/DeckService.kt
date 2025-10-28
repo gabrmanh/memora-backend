@@ -28,4 +28,11 @@ class DeckService(
 
         return userRepository.findAllByDeck(deck).map { it.toDTO() }
     }
+
+    fun getDeckVersion(deckId: UUID): Int {
+        val deck: Deck = deckRepository.findById(deckId)
+            .orElseThrow { IllegalArgumentException("Deck not found: $deckId") }
+
+        return deck.version
+    }
 }
