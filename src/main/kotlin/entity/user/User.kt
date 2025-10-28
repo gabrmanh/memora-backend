@@ -5,7 +5,7 @@ import java.util.*
 
 @Suppress("ProtectedInFinal")
 @Entity
-@Table(name = "user")
+@Table(name = "\"user\"")
 data class User(
     @Id
     val id: UUID = UUID.randomUUID(),
