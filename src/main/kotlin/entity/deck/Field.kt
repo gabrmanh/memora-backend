@@ -13,12 +13,10 @@ data class Field(
     @Column(nullable = false)
     val name: String,
 
-    @Column(nullable = false)
-    val type: String,
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "deck_id", nullable = false)
-    val deck: Deck?
+    val deck: Deck?,
+    val role: String
 ) {
-    protected constructor() : this(UUID.randomUUID(), "", "", null)
+    protected constructor() : this(UUID.randomUUID(), "", null, "FRONT")
 }

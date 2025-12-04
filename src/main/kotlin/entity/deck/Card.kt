@@ -17,14 +17,11 @@ data class Card(
     val id: UUID = UUID.randomUUID(),
 
     @Column(nullable = false)
-    val difficulty: Int,
-    
-    @Column(nullable = false)
     val index: Int,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "deck_id", nullable = false)
     val deck: Deck?
 ) {
-    protected constructor() : this(UUID.randomUUID(), 0, 0, null)
+    protected constructor() : this(UUID.randomUUID(), 0, null)
 }

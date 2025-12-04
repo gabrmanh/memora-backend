@@ -43,8 +43,8 @@ open class DeckSyncService(
             val field = Field(
                 id = f.id,
                 name = f.name,
-                type = f.type,
-                deck = deck
+                deck = deck,
+                role = "FRONT"
             )
             fieldsById[field.id] = fieldRepository.save(field)
         }
@@ -53,7 +53,6 @@ open class DeckSyncService(
             val card = cardRepository.save(
                 Card(
                     id = c.id,
-                    difficulty = c.difficulty,
                     index = c.index,
                     deck = deck
                 )
@@ -96,7 +95,7 @@ open class DeckSyncService(
                 FieldDTO(
                     id = f.id,
                     name = f.name,
-                    type = f.type
+                    role = f.role
                 )
             },
 
@@ -104,7 +103,6 @@ open class DeckSyncService(
                 val fvs = fvsByCardId[c.id].orEmpty()
                 CardDTO(
                     id = c.id,
-                    difficulty = c.difficulty,
                     index = c.index,
                     fieldValues = fvs.map { fv ->
                         FieldValueDTO(

@@ -15,12 +15,11 @@ data class DeckSyncDTO(
 data class FieldDTO(
     val id: UUID,
     val name: String,
-    val type: String
+    val role: String
 )
 
 data class CardDTO(
     val id: UUID,
-    val difficulty: Int,
     val index: Int,
     val fieldValues: List<FieldValueDTO>
 )
